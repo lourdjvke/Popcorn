@@ -1,38 +1,19 @@
 {
-  "name": "moviebox-streaming-dashboard",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "dev": "node start-server.js",
-    "build": "next build",
-    "start": "next start -p 3000",
-    "lint": "next lint"
+    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
+  "private": true,
   "dependencies": {
-    "@google/genai": "^2.4.0",
-    "@tailwindcss/postcss": "^4",
-    "artplayer": "^5.4.0",
-    "axios": "^1.14.0",
-    "clsx": "^2.1.1",
-    "dashjs": "^5.1.1",
-    "hls.js": "^1.6.15",
-    "lucide-react": "^1.7.0",
-    "next": "16.2.1",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4",
-    "express": "^4.21.2",
-    "dotenv": "^17.2.3"
+    "@replit/connectors-sdk": "^0.4.3"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.1",
-    "typescript": "^5",
-    "tsx": "^4.21.0"
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3"
   }
 }
