@@ -1,0 +1,6 @@
+{
+  "name": "MovieBox Pro Streaming Dashboard",
+  "description": "Unofficial MovieBox Pro streaming dashboard and API client with anti-piracy trap bypass and H.264/H.265 compatibility",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
