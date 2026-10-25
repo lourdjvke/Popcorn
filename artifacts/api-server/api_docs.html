@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Quick reference for the Movie Catalog API: trending lists, search, suggestions, details, and episodes."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230b1020'/%3E%3Cpath d='M30 22v56l48-28z' fill='%2386e3d2'/%3E%3C/svg%3E"
+    />
+    <title>Movie Catalog API — Quick Guide</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --surface: #121a2d;
+        --surface-raised: #18233a;
+        --text: #eef3ff;
+        --muted: #a7b2c9;
+        --line: #283753;
+        --accent: #86e3d2;
+        --accent-strong: #43c8b4;
+        --code: #0a0f1c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(ellipse at top right, rgba(67, 200, 180, 0.14), transparent 36rem),
+          var(--bg);
+        color: var(--text);
+        font: 15px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      a { color: var(--accent); }
+      .shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+      header { padding: 52px 0 30px; }
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 16px var(--accent); }
+      h1 { margin: 12px 0 8px; font-size: clamp(36px, 6vw, 62px); line-height: 1.04; letter-spacing: -.045em; }
+      .lede { max-width: 680px; margin: 0; color: var(--muted); font-size: 17px; }
+      .base {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 22px;
+        padding: 9px 13px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(18, 26, 45, .8);
+        color: var(--muted);
+      }
+      .base code { color: var(--accent); font-size: 14px; }
+      main { padding-bottom: 58px; }
+      .section-head { margin: 38px 0 14px; }
+      h2 { margin: 0; font-size: 23px; letter-spacing: -.025em; }
+      .section-head p { margin: 5px 0 0; color: var(--muted); }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .card {
+        min-width: 0;
+        padding: 19px;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        background: linear-gradient(150deg, rgba(24, 35, 58, .9), rgba(18, 26, 45, .92));
+      }
+      .route {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 7px;
+      }
+      .method {
+        padding: 2px 7px;
+        border-radius: 5px;
+        background: rgba(67, 200, 180, .13);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .06em;
+      }
+      .route code { color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
+      .card p { margin: 0; color: var(--muted); }
+      .try-box { margin-top: 22px; padding: 20px; }
+      form { display: flex; gap: 10px; }
+      input {
+        width: 100%;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--code);
+        color: var(--text);
+        font: inherit;
+      }
+      button {
+        flex: 0 0 auto;
+        padding: 11px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--accent-strong);
+        color: #071715;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      button:hover { filter: brightness(1.08); }
+      pre {
+        max-height: 360px;
+        overflow: auto;
+        margin: 14px 0 0;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--code);
+        color: #d3e1f4;
+        font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .note {
+        margin-top: 15px;
+        padding: 14px 16px;
+        border-left: 3px solid var(--accent);
+        border-radius: 0 9px 9px 0;
+        background: rgba(67, 200, 180, .08);
+        color: var(--muted);
+      }
+      .note strong { color: var(--text); }
+      footer { padding: 20px 0 38px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+      @media (max-width: 700px) {
+        header { padding-top: 36px; }
+        .grid { grid-template-columns: 1fr; }
+        form { flex-direction: column; }
+        button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div class="eyebrow"><span class="dot"></span> API reference</div>
+        <h1>Movie Catalog API</h1>
+        <p class="lede">Browse catalog sections, search titles, retrieve details, and list series episodes.</p>
+        <div class="base">Base path <code id="basePath">/api</code></div>
+      </header>
+
+      <main>
+        <section>
+          <div class="section-head">
+            <h2>Browse</h2>
+            <p>Catalog endpoints return JSON. Most lists use a <code>code</code> and <code>data</code> envelope.</p>
+          </div>
+          <div class="grid">
+            <article class="card"><div class="route"><span class="method">GET</span><code>/trending</code></div><p>Trending titles. Results are in <code>data</code>.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/home?page=1</code></div><p>Home feed sections, usually under <code>data.list</code>.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/movies?page=1</code></div><p>Movie catalog sections.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/anime?page=1</code></div><p>Anime catalog sections.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/rankings?tabId=1</code></div><p>Ranked titles for the selected ranking tab.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/discovery</code></div><p>Personalized discovery feed.</p></article>
+          </div>
+          <div class="note"><strong>Series:</strong> There is no separate <code>/series</code> route. Series can appear in search and catalog results; check <code>subjectType</code>, then use <code>/detail/{subject_id}</code> and <code>/episodes/{series_id}</code>.</div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <h2>Search and autocomplete</h2>
+            <p>Search results are normalized into <code>data.items</code>.</p>
+          </div>
+          <div class="grid">
+            <article class="card"><div class="route"><span class="method">GET</span><code>/search-suggestions</code></div><p>Popular suggestion terms. Add <code>?q=Inception</code> for query-based suggestions.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/search?q=Inception&amp;page=1&amp;subject_type=0</code></div><p>Full search. <code>subject_type</code> defaults to <code>0</code>; <code>page</code> defaults to <code>1</code>.</p></article>
+          </div>
+          <article class="card try-box">
+            <form id="searchForm">
+              <input id="query" name="q" list="suggestions" placeholder="Try a title, e.g. Inception" autocomplete="off" />
+              <datalist id="suggestions"></datalist>
+              <button type="submit">Search</button>
+            </form>
+            <pre id="results" aria-live="polite">Search results will appear here.</pre>
+          </article>
+          <div class="note"><strong>Result shape:</strong> <code>data.items</code> is an array of title objects. Common fields include <code>subjectId</code>, <code>title</code>, <code>cover</code>, <code>poster</code>, <code>score</code>, <code>releaseTime</code>, <code>subjectType</code>, and <code>runtime</code>. The imported API uses <code>subjectType: 1</code> for movies and <code>2</code> for series.</div>
+          <pre>{
+  "code": 0,
+  "data": {
+    "items": [
+      {
+        "subjectId": "example-id",
+        "title": "Example title",
+        "cover": "https://image.example/poster.jpg",
+        "score": "8.8",
+        "releaseTime": "2024",
+        "subjectType": 2,
+        "runtime": "45m"
+      }
+    ]
+  }
+}</pre>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <h2>Details and episodes</h2>
+            <p>Use the <code>subjectId</code> from a search result.</p>
+          </div>
+          <div class="grid">
+            <article class="card"><div class="route"><span class="method">GET</span><code>/detail/{subject_id}</code></div><p>Title metadata, poster, description, cast, and related fields. The result is under <code>data</code>.</p></article>
+            <article class="card"><div class="route"><span class="method">GET</span><code>/episodes/{series_id}</code></div><p>Season and episode lists for a series. The response includes <code>data.seasons</code>.</p></article>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <h2>Examples</h2>
+            <p>Use the full base path from your API host.</p>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <div class="route"><code>Search with curl</code></div>
+              <pre>curl -sS "https://YOUR_HOST/api/search?q=Inception&amp;page=1&amp;subject_type=0"</pre>
+            </article>
+            <article class="card">
+              <div class="route"><code>JavaScript</code></div>
+              <pre>const response = await fetch(`${location.origin}/api/search?q=${encodeURIComponent(query)}`);
+const { data } = await response.json();
+console.log(data.items);</pre>
+            </article>
+          </div>
+        </section>
+
+        <div class="note">
+          <strong>CORS:</strong> Browser origins are controlled by <code>CORS_ORIGINS</code> (comma-separated origins); <code>FRONTEND_URL</code> is also accepted. Keep the explicit origin allowlist for cookie-based sessions. For cross-origin browser requests that use sessions, send <code>credentials: "include"</code>.
+        </div>
+        <div class="note">
+          <strong>Media:</strong> This guide does not add a <code>/watch</code> proxy or new third-party download flow. Use media URLs only when you have permission to access and serve them.
+        </div>
+      </main>
+      <footer>API base: <a id="openApiLink" href="#">OpenAPI JSON</a> · <a id="healthLink" href="#">Health check</a></footer>
+    </div>
+    <script>
+      const apiBase = location.pathname.replace(/\/+$/, "") || "/api";
+      document.getElementById("basePath").textContent = location.origin + apiBase;
+      document.getElementById("openApiLink").href = apiBase + "/openapi.json";
+      document.getElementById("healthLink").href = apiBase + "/health";
+      const queryInput = document.getElementById("query");
+      const datalist = document.getElementById("suggestions");
+      const output = document.getElementById("results");
+      let suggestionTimer;
+
+      queryInput.addEventListener("input", () => {
+        clearTimeout(suggestionTimer);
+        const q = queryInput.value.trim();
+        if (!q) { datalist.replaceChildren(); return; }
+        suggestionTimer = setTimeout(async () => {
+          try {
+            const response = await fetch(`${apiBase}/search-suggestions?q=${encodeURIComponent(q)}`);
+            const payload = await response.json();
+            datalist.replaceChildren(...(payload.data || []).map((term) => {
+              const option = document.createElement("option");
+              option.value = term;
+              return option;
+            }));
+          } catch (_) {
+            datalist.replaceChildren();
+          }
+        }, 250);
+      });
+
+      document.getElementById("searchForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const q = queryInput.value.trim();
+        if (!q) { output.textContent = "Enter a search term."; return; }
+        output.textContent = "Searching…";
+        try {
+          const response = await fetch(`${apiBase}/search?q=${encodeURIComponent(q)}&page=1&subject_type=0`);
+          const payload = await response.json();
+          output.textContent = JSON.stringify(payload, null, 2);
+        } catch (error) {
+          output.textContent = `Request failed: ${error.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query, Response, Cookie, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 import httpx
 import requests
 import urllib.request
@@ -25,10 +25,12 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="MovieBox Unofficial API Backend")
 
 
-@app.get("/")
-def root_health():
-    """Lightweight Render/Uvicorn health endpoint."""
-    return {"status": "ok", "service": "moviebox-internal-api"}
+@app.get("/", response_class=HTMLResponse)
+def api_docs():
+    """Show the API guide at the service root."""
+    docs_path = os.path.join(os.path.dirname(__file__), "api_docs.html")
+    with open(docs_path, encoding="utf-8") as docs_file:
+        return docs_file.read()
 
 
 @app.get("/health")
