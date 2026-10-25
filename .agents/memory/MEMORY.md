@@ -1,0 +1,1 @@
+- [Python API workflow paths](python-api-workflow-paths.md) — API service development runs from the artifact directory; Python dependencies are installed at the workspace root.

@@ -1,5 +1,5 @@
 kind = "api"
-previewPath = "/api" # TODO - should be excluded from preview in the first place
+previewPath = "/api"
 title = "API Server"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
@@ -10,22 +10,23 @@ name = "API Server"
 paths = ["/api"]
 
 [services.development]
-run = "pnpm --filter @workspace/api-server run dev"
+run = "../../.pythonlibs/bin/python start_api.py"
 
 [services.production]
 
 [services.production.build]
-args = ["pnpm", "--filter", "@workspace/api-server", "run", "build"]
+args = ["uv", "sync", "--locked", "--no-dev"]
 
 [services.production.build.env]
+UV_PROJECT_ENVIRONMENT = ".pythonlibs"
 NODE_ENV = "production"
 
 [services.production.run]
-# we don't run through pnpm to make startup faster in production
-args = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
+args = [".pythonlibs/bin/python", "artifacts/api-server/start_api.py"]
 
 [services.production.run.env]
 PORT = "8080"
+UV_PROJECT_ENVIRONMENT = ".pythonlibs"
 NODE_ENV = "production"
 
 [services.production.health.startup]
