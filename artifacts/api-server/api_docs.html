@@ -153,7 +153,7 @@
       <header>
         <div class="eyebrow"><span class="dot"></span> API reference</div>
         <h1>Movie Catalog API</h1>
-        <p class="lede">Browse catalog sections, search titles, retrieve details, and list series episodes.</p>
+          <p class="lede">Browse catalog sections, search titles, retrieve details, list episodes, and play media through the API.</p>
         <div class="base">Base path <code id="basePath">/api</code></div>
       </header>
 
@@ -223,6 +223,34 @@
 
         <section>
           <div class="section-head">
+            <h2>Playback and downloads</h2>
+            <p>Resolve a title first, then use its <code>subjectId</code>.</p>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <div class="route"><span class="method">GET</span><code>/watch/{subject_id}?season=1&amp;episode=1&amp;quality=720p</code></div>
+              <p>Relays the selected media to a browser video player and forwards byte-range requests for seeking. Use <code>season</code> and <code>episode</code> for series; they are ignored for movies.</p>
+            </article>
+            <article class="card">
+              <div class="route"><span class="method">GET</span><code>/download/{subject_id}?season=1&amp;episode=1&amp;quality=720p&amp;title=Example</code></div>
+              <p>Best-effort downloadable file response. MP4 sources are returned as MP4; other supported sources may be remuxed to TS. Returns 404 when no downloadable mirror is available.</p>
+            </article>
+          </div>
+          <pre>&lt;video controls playsinline preload="metadata"
+  src="https://YOUR_HOST/api/watch/MOVIE_ID?quality=720p"&gt;
+&lt;/video&gt;
+
+&lt;!-- For a series episode: --&gt;
+&lt;video controls playsinline
+  src="https://YOUR_HOST/api/watch/SERIES_ID?season=1&amp;episode=2&amp;quality=720p"&gt;
+&lt;/video&gt;
+
+curl -L "https://YOUR_HOST/api/download/MOVIE_ID?quality=720p" -o movie.mp4</pre>
+          <div class="note"><strong>Browser support:</strong> The watch relay preserves MP4 byte ranges so native video controls can seek. Native HLS playback depends on the browser; some browsers require an HLS-capable player.</div>
+        </section>
+
+        <section>
+          <div class="section-head">
             <h2>Examples</h2>
             <p>Use the full base path from your API host.</p>
           </div>
@@ -241,10 +269,7 @@ console.log(data.items);</pre>
         </section>
 
         <div class="note">
-          <strong>CORS:</strong> Browser origins are controlled by <code>CORS_ORIGINS</code> (comma-separated origins); <code>FRONTEND_URL</code> is also accepted. Keep the explicit origin allowlist for cookie-based sessions. For cross-origin browser requests that use sessions, send <code>credentials: "include"</code>.
-        </div>
-        <div class="note">
-          <strong>Media:</strong> This guide does not add a <code>/watch</code> proxy or new third-party download flow. Use media URLs only when you have permission to access and serve them.
+          <strong>CORS:</strong> The API allows requests from any origin (<code>Access-Control-Allow-Origin: *</code>). Wildcard CORS does not allow credentialed browser requests, so cross-origin clients use guest API sessions rather than account cookies.
         </div>
       </main>
       <footer>API base: <a id="openApiLink" href="#">OpenAPI JSON</a> · <a id="healthLink" href="#">Health check</a></footer>

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Movie Catalog API Docs"
+description = "A public documentation site for the Movie Catalog API. It explains browsing, search, autocomplete, title details, episodes, playback through the API, downloads, and CORS."
+version = "1.0.0"
+id = "artifacts/movie-api-docs"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22961
+
+[services.development]
+run = "pnpm --filter @workspace/movie-api-docs run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/movie-api-docs", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/movie-api-docs/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22961"
+BASE_PATH = "/"

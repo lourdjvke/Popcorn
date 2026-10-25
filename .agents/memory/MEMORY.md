@@ -1,1 +1,2 @@
 - [Python API workflow paths](python-api-workflow-paths.md) — API service development runs from the artifact directory; Python dependencies are installed at the workspace root.
+- [Publishing API-backed docs](publishing-api-docs.md) — this workspace needs a root web artifact for the docs frontend; the API artifact alone did not expose a publishable app.

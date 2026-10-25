@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query, Response, Cookie, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from starlette.background import BackgroundTask
+from starlette.concurrency import run_in_threadpool
 import httpx
 import requests
 import urllib.request
@@ -15,7 +17,8 @@ import asyncio
 import logging
 import uuid
 import re
-from urllib.parse import quote
+import ipaddress
+from urllib.parse import quote, urljoin, urlsplit
 from moviebox_api import MovieBoxClient, MovieBoxAuth, MovieBoxContent, MovieBoxStream, MovieBoxUser
 
 # Configure logging
@@ -37,22 +40,16 @@ def api_docs():
 def health_check():
     return {"status": "ok"}
 
-# Enable CORS for local and deployed Wotchly frontends.
-# Render/Netlify deployments have historically used both variable names, so
-# treat FRONTEND_URL as a backwards-compatible alias for CORS_ORIGINS.
-_allowed_origins = [
-    origin.strip()
-    for raw in (os.getenv("CORS_ORIGINS", ""), os.getenv("FRONTEND_URL", ""))
-    for origin in raw.split(",")
-    if origin.strip()
-]
-_allowed_origins += ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"]
+# Public wildcard CORS for frontend clients hosted on any origin.
+# Credentialed browser requests are intentionally disabled because browsers
+# reject Access-Control-Allow-Origin: * together with credentials.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=sorted(set(_allowed_origins)),
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Accept-Ranges", "Content-Range", "Content-Length"],
 )
 
 # Multi-session management
@@ -1497,6 +1494,124 @@ def get_stream(subject_id: str, season: int = 1, episode: int = 1, quality: Opti
         "referer": stream_referer,
         "headers": headers_dict
     }
+
+
+def _validate_watch_url(url: str):
+    parsed = urlsplit(url)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+        raise HTTPException(status_code=502, detail="Upstream returned an invalid media URL.")
+
+    host = parsed.hostname.lower().rstrip(".")
+    if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
+        raise HTTPException(status_code=502, detail="Upstream media host is not allowed.")
+    try:
+        address = ipaddress.ip_address(host)
+        if not address.is_global:
+            raise HTTPException(status_code=502, detail="Upstream media host is not public.")
+    except ValueError:
+        pass
+    return parsed
+
+
+@app.get("/watch/{subject_id}")
+async def watch(
+    request: Request,
+    subject_id: str,
+    season: int = 1,
+    episode: int = 1,
+    quality: Optional[str] = "720p",
+    resource_id: Optional[str] = None,
+    session_id: Optional[str] = Cookie(None),
+):
+    """Relay the resolved media response while preserving byte-range playback."""
+    stream = await run_in_threadpool(
+        get_stream,
+        subject_id,
+        season,
+        episode,
+        quality,
+        resource_id,
+        session_id,
+    )
+    media_url = stream.get("url") if isinstance(stream, dict) else None
+    if not media_url:
+        raise HTTPException(status_code=404, detail="No playable media URL was found.")
+
+    current_url = media_url
+    current_parsed = _validate_watch_url(current_url)
+    upstream_headers = {
+        key: value
+        for key, value in (stream.get("headers") or {}).items()
+        if key.lower() in {"user-agent", "cookie", "referer"}
+    }
+    upstream_headers["Accept-Encoding"] = "identity"
+    for header_name in ("Range", "If-Range"):
+        header_value = request.headers.get(header_name)
+        if header_value:
+            upstream_headers[header_name] = header_value
+
+    client = httpx.AsyncClient(timeout=None, follow_redirects=False)
+    upstream = None
+    try:
+        for _ in range(6):
+            request_obj = client.build_request("GET", current_url, headers=upstream_headers)
+            upstream = await client.send(request_obj, stream=True)
+            if upstream.status_code not in {301, 302, 303, 307, 308}:
+                break
+
+            location = upstream.headers.get("location")
+            if not location:
+                break
+            next_url = urljoin(current_url, location)
+            next_parsed = _validate_watch_url(next_url)
+            await upstream.aclose()
+            if next_parsed.hostname != current_parsed.hostname:
+                upstream_headers.pop("Cookie", None)
+            current_url = next_url
+            current_parsed = next_parsed
+        else:
+            raise HTTPException(status_code=502, detail="Too many upstream media redirects.")
+    except HTTPException:
+        if upstream is not None:
+            await upstream.aclose()
+        await client.aclose()
+        raise
+    except httpx.HTTPError as exc:
+        if upstream is not None:
+            await upstream.aclose()
+        await client.aclose()
+        logger.warning("Watch relay upstream request failed: %s", exc)
+        raise HTTPException(status_code=502, detail="The upstream media server could not be reached.")
+
+    response_headers = {
+        name: upstream.headers[name]
+        for name in (
+            "content-type",
+            "content-length",
+            "content-range",
+            "accept-ranges",
+            "cache-control",
+            "etag",
+            "last-modified",
+        )
+        if name in upstream.headers
+    }
+
+    async def relay_chunks():
+        async for chunk in upstream.aiter_bytes():
+            yield chunk
+
+    async def close_upstream():
+        await upstream.aclose()
+        await client.aclose()
+
+    return StreamingResponse(
+        relay_chunks(),
+        status_code=upstream.status_code,
+        headers=response_headers,
+        background=BackgroundTask(close_upstream),
+    )
+
 
 import os
 
