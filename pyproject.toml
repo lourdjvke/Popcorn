@@ -18,7 +18,7 @@ dependencies = [
 repl-nix-workspace = "repl_nix_workspace:main"
 
 [tool.vercel]
-entrypoint = "artifacts.api-server.moviebox_api_server:app"
+entrypoint = "api:app"
 
 [build-system]
 requires = ["uv_build>=0.13.4,<0.14.0"]
