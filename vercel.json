@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "pnpm --filter @workspace/movie-api-docs run build",
+  "outputDirectory": "artifacts/movie-api-docs/dist/public"
+}
