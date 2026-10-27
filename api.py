@@ -19,12 +19,12 @@ _module = module_from_spec(_spec)
 sys.modules[_spec.name] = _module
 _spec.loader.exec_module(_module)
 
-app = FastAPI(title="MovieBox API")
+# Expose the real FastAPI application directly. Vercel maps this file to the
+# /api function prefix, so adding another /api mount would require /api/api/*
+# and makes the documented /api/search and /api/stream routes unreachable.
+app = _module.app
 
 
-@app.get("/api/healthz")
+@app.get("/healthz")
 async def healthz():
     return {"status": "ok"}
-
-
-app.mount("/api", _module.app)
