@@ -54,7 +54,7 @@ const searchEndpoints = [
 const mediaEndpoints = [
   { path: '/detail/{subject_id}', description: 'Title metadata, artwork, synopsis, cast, and related fields.' },
   { path: '/episodes/{series_id}', description: 'Season and episode lists for a series, including data.seasons.' },
-  { path: '/watch/{subject_id}?season=1&episode=1&quality=720p', description: 'Media relay for playback; forwards byte-range requests for seeking.' },
+  { path: '/stream/{subject_id}?season=1&episode=1&quality=720p', description: 'Resolve a playable media URL for a movie or episode.' },
   { path: '/download/{subject_id}?season=1&episode=1&quality=720p', description: 'Best-effort downloadable media response for a title or episode.' },
 ];
 
@@ -261,7 +261,7 @@ function App() {
             <a href="#browse"><Film />Browse</a>
             <a href="#search"><Search />Search &amp; autocomplete</a>
             <a href="#details"><Database />Details &amp; episodes</a>
-            <a href="#media"><Play />Playback &amp; downloads</a>
+            <a href="#media"><Play />Streaming &amp; downloads</a>
             <a href="#examples"><Braces />Examples</a>
           </nav>
           <div className="side-footer"><strong>Quick start</strong>All routes share the same-origin <code className="inline-code">/api</code> base. No API key required for public reads.</div>
@@ -434,15 +434,15 @@ function App() {
           <EndpointSection
             id="media"
             index="04"
-            title="Playback & downloads"
-            description="Use the subjectId from a movie or series result. Season and episode select a series episode."
+title="Streaming & downloads"
+  description="Resolve a playable stream from a movie or series subjectId."
             icon={Play}
             endpoints={mediaEndpoints.slice(2)}
           />
           <div className="detail-grid" style={{ marginTop: 14 }}>
             <article className="detail-card">
-              <h3><Play size={14} style={{ display: 'inline', marginRight: 7, verticalAlign: '-2px', color: 'hsl(var(--primary))' }} />Playback relay</h3>
-              <p><code className="inline-code">/watch</code> relays media and supports byte-range playback. MP4 byte ranges have been verified with <code className="inline-code">206 Partial Content</code>, so native video controls can seek. Native HLS support varies by browser.</p>
+<h3><Play size={14} style={{ display: 'inline', marginRight: 7, verticalAlign: '-2px', color: 'hsl(var(--primary))' }} />Stream resolver</h3>
+  <p><code className="inline-code">/stream</code> resolves the best available playable media URL for the requested movie or episode. Use the returned URL with your player or pass it through your own media layer.</p>
             </article>
             <article className="detail-card">
               <h3><ArrowDownToLine size={14} style={{ display: 'inline', marginRight: 7, verticalAlign: '-2px', color: 'hsl(var(--primary))' }} />Best-effort downloads</h3>
@@ -477,10 +477,11 @@ console.log(data.items);`}</pre>
               </article>
               <article className="example-card">
                 <div className="example-head"><strong>Play an episode</strong><span>HTML</span></div>
-                <pre className="code-block">{`<video controls playsinline
-  preload="metadata"
-  src="/api/watch/SERIES_ID?season=1&amp;episode=1&amp;quality=720p">
-</video>`}</pre>
+<pre className="code-block">{`const response = await fetch(
+  '/api/stream/SERIES_ID?season=1&episode=1&quality=720p'
+);
+const { data } = await response.json();
+video.src = data.url;`}</pre>
               </article>
               <article className="example-card">
                 <div className="example-head"><strong>Search from terminal</strong><span>CURL</span></div>
