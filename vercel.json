@@ -11,7 +11,7 @@
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "pnpm --filter @workspace/movie-api-docs run build",
-        "distDir": "artifacts/movie-api-docs/dist/public"
+        "distDir": "dist/public"
       }
     }
   ],
