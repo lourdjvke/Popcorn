@@ -1513,7 +1513,7 @@ def _validate_watch_url(url: str):
     return parsed
 
 
-@app.get("/watch/{subject_id}")
+@app.api_route("/watch/{subject_id}", methods=["GET", "HEAD"])
 async def watch(
     request: Request,
     subject_id: str,
