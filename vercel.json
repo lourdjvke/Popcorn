@@ -10,6 +10,7 @@
       "src": "artifacts/movie-api-docs/package.json",
       "use": "@vercel/static-build",
       "config": {
+        "buildCommand": "pnpm --filter @workspace/movie-api-docs run build",
         "distDir": "dist/public"
       }
     }
