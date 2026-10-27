@@ -19,4 +19,23 @@ _module = module_from_spec(_spec)
 sys.modules[_spec.name] = _module
 _spec.loader.exec_module(_module)
 
-app = _module.app
+
+
+class _ApiPrefixAdapter:
+    """Expose FastAPI routes below Vercel's /api function prefix."""
+
+    def __init__(self, downstream):
+        self.downstream = downstream
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http" and scope.get("path", "").startswith("/api"):
+            scope = dict(scope)
+            path = scope["path"][4:] or "/"
+            if path == "/healthz":
+                path = "/health"
+            scope["path"] = path
+            scope["raw_path"] = path.encode("utf-8")
+        await self.downstream(scope, receive, send)
+
+
+app = _ApiPrefixAdapter(_module.app)
